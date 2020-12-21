@@ -5,7 +5,9 @@
 //using namespace cv;
 
 int main(int argc, char** argv) {
-
+   
+    cv::Mat img = imread("redBall.jpg", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
+    
     //create a gui window:
     cv::namedWindow("Output", 1);
 
@@ -23,9 +25,16 @@ int main(int argc, char** argv) {
 
     //display the image:
     cv::imshow("Output", output);
+    
+    cv::imshow("Apple", img);
+
+
+
+
 
     //wait for the user to press any key:
     cv::waitKey(0);
+    cv::destroyAllWindows();
 
     return 0;
 
