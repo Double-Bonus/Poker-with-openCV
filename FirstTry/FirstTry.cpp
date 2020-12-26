@@ -39,11 +39,9 @@ int main(int argc, char** argv) {
     cv::imshow("Output", output);     //display the image  
     cv::imshow("Apple", img);
 
-
     cap = cv::VideoCapture(0);      //to make capture inside file: VideoCapture cap("chaplin.mp4"); 
     outVideo.open(outFilename, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, cv::Size(640, 480), true);
-    while (1) {     //video capture
-       
+    while (1) {     //video capture      
         isVideoGood = cap.read(frame);
         if (!isVideoGood) {
             std::cout << "!!! Video was not found" << std::endl;
@@ -51,6 +49,8 @@ int main(int argc, char** argv) {
         }
         cv::cvtColor(frame, grayImage, cv::COLOR_BGR2GRAY);
 
+        cv::line(frame, cv::Size(0, 0), cv::Size(300, 400), cv::Scalar(255, 255, 255), 50);
+        cv::rectangle(frame, cv::Size(0, 0), cv::Size(300, 400), cv::Scalar(0, 0, 255), 15);
         cv::imshow("frame", frame);
         cv::imshow("gray", grayImage);
         outVideo.write(frame);
@@ -70,5 +70,4 @@ int main(int argc, char** argv) {
     cv::destroyAllWindows();
 
     return 0;
-
 }
