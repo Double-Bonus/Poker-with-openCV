@@ -33,22 +33,18 @@ int main(int argc, char** argv) {
 
     cv::Mat img = imread("redBall.jpg", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
     if (img.empty()){
-        std::cout << "!!! Failed imread(): image not found" << std::endl;
-        // don't let the execution continue, else imshow() will crash.
+        std::cout << "!!! Failed imread(): image not found" << std::endl;    // don't let the execution continue, else imshow() will crash.
     }
 
     pythonLogo = imread("mainlogo.png", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
     if (pythonLogo.empty()) {
-        std::cout << "!!! Failed imread(): image not found" << std::endl;
-        // don't let the execution continue, else imshow() will crash.
+        std::cout << "!!! Failed imread(): image not found" << std::endl;     // don't let the execution continue, else imshow() will crash.
     }
 
     whiteBgPhoto = imread("3D-Matplotlib.png", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
     if (whiteBgPhoto.empty()) {
         std::cout << "!!! Failed imread(): image not found" << std::endl;
-        // don't let the execution continue, else imshow() will crash.
     }
-
 
     cv::namedWindow("Output", 1);    //create a gui window:
 
@@ -57,9 +53,6 @@ int main(int argc, char** argv) {
     //write text on the matrix:
     putText(output, "Hello World :)", cvPoint(15, 70),
         cv::FONT_HERSHEY_PLAIN, 3, cvScalar(0, 255, 0), 4);
-
-    //cv::imshow("Output", output);     //display the image  
-    //cv::imshow("Apple", img);
 
     cap = cv::VideoCapture(0);      //to make capture inside file: VideoCapture cap("chaplin.mp4"); 
     outVideo.open(outFilename, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, cv::Size(640, 480), true);
@@ -76,7 +69,6 @@ int main(int argc, char** argv) {
         //subImg = frame(cv::Range(0, 200), cv::Range(0, 150));
         //subImg.copyTo(frame);
         //cv::imshow("Onlly half", subImg);
-
         //rectangle(frame, Rec, cv::Scalar(255), 1, 8, 0);
 
         if (isMultiple) {
@@ -86,8 +78,8 @@ int main(int argc, char** argv) {
 
         addLogo(whiteBgPhoto, pythonLogo);
 
-        //cv::imshow("frame", frame);
-        //cv::imshow("gray", grayImage);
+        cv::imshow("frame", frame);
+        cv::imshow("gray camera", grayImage);
 
         //cv::imshow("white", whiteBgPhoto);
 
@@ -135,37 +127,21 @@ void addLogo(cv::Mat &frame, cv::Mat pythonLogo)
 
     logoRows = pythonLogo.rows;
     logocols = pythonLogo.cols;
-
     Roi = frame(cv::Range(0, logoRows), cv::Range(0, logocols));
 
     cv::cvtColor(pythonLogo, img2gray, cv::COLOR_BGR2GRAY);
     cv::threshold(img2gray, mask, 220, 255, cv::THRESH_BINARY_INV);
-
     cv::bitwise_not(mask, mask_inv);
-   // cv::imshow("mask", mask_inv);
-
     cv::bitwise_and(Roi, Roi, frame_bg, mask_inv);
-    //cv::imshow("mask", frame_bg);
     cv::bitwise_and(pythonLogo, pythonLogo, frame_fg, mask);
 
-   cv::imshow("frame_bg", frame_bg);
-   cv::imshow("frame_fg", frame_fg);
-
-
-            //cv::add(frame_bg, frame_fg, dst);
+    cv::imshow("frame_bg", frame_bg);
+    cv::imshow("frame_fg", frame_fg);
 
     cv::add(frame_bg, frame_fg, dst);
     cv::imshow("dst", dst);
-    //frame.copyTo(dst);
-
 
     cv::Rect WhereRec3(0, 0, dst.cols, dst.rows);
     dst.copyTo(frame(WhereRec3));
-    //dst = frame_bg + frame_fg;
-
-    
-    cv::imshow("frame", frame);
-
-        //dst.copyTo(frame(cv::Range(0, logoRows), cv::Range(0, logocols)));
-
+    cv::imshow("White with Logo", frame);
 }
