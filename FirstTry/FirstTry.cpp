@@ -2,146 +2,74 @@
 #include <string>
 #include <sstream>
 
-#include <opencv2/imgcodecs.hpp>
-#include "opencv2/opencv.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include <opencv2/core/types_c.h>
+
 #include <opencv2/core.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-//defines
-#define KEY_Q (113)
-#define KEY_W (119)
-const cv::Rect REC(240, 160, 260, 260);
+using namespace std;
+using namespace cv;
 
-//function definitions
-void drawMultipleImages(cv::Mat& frame);
-void exitProgram(cv::VideoCapture& cap, cv::VideoWriter& outVideo);
-void addLogo(cv::Mat& frame, cv::Mat pythonLogo);
+int match(string filename, string templatename);
 
-int main(int argc, char** argv) {
-    cv::VideoCapture cap;
-    cv::Mat frame;  //used for video capture
-    cv::Mat grayImage, subImg, pythonLogo, Roi;
-    bool isVideoGood = false, isMultiple = false;
-    int16_t key = -1;
-    const std::string outFilename = "outcpp.avi";
-    double fps = 10.0;
-    cv::VideoWriter outVideo;
-    //cv::Rect WhereRec;
-    cv::Mat whiteBgPhoto;
-
-    cv::Mat img = imread("redBall.jpg", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
-    if (img.empty()){
-        std::cout << "!!! Failed imread(): image not found" << std::endl;    // don't let the execution continue, else imshow() will crash.
-    }
-
-    pythonLogo = imread("mainlogo.png", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
-    if (pythonLogo.empty()) {
-        std::cout << "!!! Failed imread(): image not found" << std::endl;     // don't let the execution continue, else imshow() will crash.
-    }
-
-    whiteBgPhoto = imread("3D-Matplotlib.png", cv::IMREAD_UNCHANGED);  //IMREAD_GRAYSCALE
-    if (whiteBgPhoto.empty()) {
-        std::cout << "!!! Failed imread(): image not found" << std::endl;
-    }
-
-    cv::namedWindow("Output", 1);    //create a gui window:
-
-    cv::Mat output = cv::Mat::zeros(120, 350, CV_8UC3);     //initialize a 120X350 matrix of black pixels:
-
-    //write text on the matrix:
-    putText(output, "Hello World :)", cvPoint(15, 70),
-        cv::FONT_HERSHEY_PLAIN, 3, cvScalar(0, 255, 0), 4);
-
-    cap = cv::VideoCapture(0);      //to make capture inside file: VideoCapture cap("chaplin.mp4"); 
-    outVideo.open(outFilename, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, cv::Size(640, 480), true);
-    while (1) {     //video capture      
-        isVideoGood = cap.read(frame);
-        if (!isVideoGood) {
-            std::cout << "!!! Video was not found" << std::endl;
-            return 0;
-        }
-        cv::cvtColor(frame, grayImage, cv::COLOR_BGR2GRAY);
-
-        //cv::line(frame, cv::Size(0, 0), cv::Size(300, 400), cv::Scalar(255), 50);
-        //cv::rectangle(frame, cv::Size(0, 0), cv::Size(300, 400), cv::Scalar(0, 0, 255), 15);
-        //subImg = frame(cv::Range(0, 200), cv::Range(0, 150));
-        //subImg.copyTo(frame);
-        //cv::imshow("Onlly half", subImg);
-        //rectangle(frame, Rec, cv::Scalar(255), 1, 8, 0);
-
-        if (isMultiple) {
-            drawMultipleImages(frame);
-        }
-
-
-        addLogo(whiteBgPhoto, pythonLogo);
-
-        cv::imshow("frame", frame);
-        cv::imshow("gray camera", grayImage);
-
-        //cv::imshow("white", whiteBgPhoto);
-
-        outVideo.write(frame);
-        if (key = cv::waitKey(1)) {
-            if (key == KEY_Q) {
-                break;
-            }
-            if (key == KEY_W) {
-                isMultiple = !isMultiple;
-            }
-        }
-    }
-
-    exitProgram(cap, outVideo);
+int main(int argc, char** agrv)
+{
+    int test  = match("img_poker", "template");
     return 0;
 }
 
-void drawMultipleImages(cv::Mat &frame)
+
+
+int match(string filename, string templatename)
 {
-    cv::Mat Roi = frame(REC);
-    cv::Rect WhereRec(0, 0, Roi.cols, Roi.rows);
-    cv::Rect WhereRec2(200, 0, Roi.cols, Roi.rows);
-    cv::Rect WhereRec3(380, 0, Roi.cols, Roi.rows);
-    Roi.copyTo(frame(WhereRec));
-    Roi.copyTo(frame(WhereRec2));
-    Roi.copyTo(frame(WhereRec3));
+    Mat ref = cv::imread(filename + ".png");
+    Mat tpl = cv::imread(templatename + ".png");
+    if (ref.empty() || tpl.empty())
+    {
+        cout << "Error reading file(s)!" << endl;
+        return -1;
+    }
 
-}
+    Mat gref, gtpl;
+    cvtColor(ref, gref, COLOR_BGRA2GRAY);
+    cvtColor(tpl, gtpl, COLOR_BGRA2GRAY);
 
-void exitProgram(cv::VideoCapture &cap, cv::VideoWriter &outVideo )
-{
-    cap.release();
-    outVideo.release();
-    //wait for the user to press any key:
-    cv::waitKey(0);  //Calling waitKey() is mandatory if you use imshow().
-    cv::destroyAllWindows();
-}
+    const int low_canny = 110;
+    Canny(gref, gref, low_canny, low_canny * 3);
+    Canny(gtpl, gtpl, low_canny, low_canny * 3);
 
-void addLogo(cv::Mat &frame, cv::Mat pythonLogo)
-{
-    cv::Mat Roi;
-    cv::Mat img2gray, mask, mask_inv, frame_bg, frame_fg, dst;
-    int logoRows = 0, logocols = 0;
+    imshow("file", gref);
+    imshow("template", gtpl);
 
-    logoRows = pythonLogo.rows;
-    logocols = pythonLogo.cols;
-    Roi = frame(cv::Range(0, logoRows), cv::Range(0, logocols));
+    Mat res_32f(ref.rows - tpl.rows + 1, ref.cols - tpl.cols + 1, CV_32FC1);
+    matchTemplate(gref, gtpl, res_32f, NORM_MINMAX);
 
-    cv::cvtColor(pythonLogo, img2gray, cv::COLOR_BGR2GRAY);
-    cv::threshold(img2gray, mask, 220, 255, cv::THRESH_BINARY_INV);
-    cv::bitwise_not(mask, mask_inv);
-    cv::bitwise_and(Roi, Roi, frame_bg, mask_inv);
-    cv::bitwise_and(pythonLogo, pythonLogo, frame_fg, mask);
+    Mat res;
+    res_32f.convertTo(res, CV_8U, 255.0);
+    imshow("result", res);
 
-    cv::imshow("frame_bg", frame_bg);
-    cv::imshow("frame_fg", frame_fg);
+    int size = ((tpl.cols + tpl.rows) / 4) * 2 + 1; //force size to be odd
+    adaptiveThreshold(res, res, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, size, -64);
+    imshow("result_thresh", res);
 
-    cv::add(frame_bg, frame_fg, dst);
-    cv::imshow("dst", dst);
+    while (1)
+    {
+        double minval, maxval;
+        Point minloc, maxloc;
+        minMaxLoc(res, &minval, &maxval, &minloc, &maxloc);
 
-    cv::Rect WhereRec3(0, 0, dst.cols, dst.rows);
-    dst.copyTo(frame(WhereRec3));
-    cv::imshow("White with Logo", frame);
+        if (maxval > 0)
+        {
+            rectangle(ref, maxloc, Point(maxloc.x + tpl.cols, maxloc.y + tpl.rows), Scalar(0, 255, 0), 2);
+            floodFill(res, maxloc, 0); //mark drawn blob
+        }
+        else
+            break;
+    }
+
+    imshow("final", ref);
+    waitKey(0);
+
+    return 0;
 }
