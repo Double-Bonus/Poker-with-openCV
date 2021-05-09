@@ -2,6 +2,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include <iostream>
+
 using namespace std;
 using namespace cv;
 bool use_mask;
@@ -21,15 +22,14 @@ int main(int argc, char** argv)
     }
     img = imread(argv[1], IMREAD_COLOR);
     templ = imread(argv[2], IMREAD_COLOR);
-    cvtColor(img, img, COLOR_BGR2GRAY);
-    cvtColor(templ, templ, COLOR_BGR2GRAY);
+    //cvtColor(img, img, COLOR_BGR2GRAY);
+    //cvtColor(templ, templ, COLOR_BGR2GRAY);
 
     if (argc > 3) {
         use_mask = true;
         mask = imread(argv[3], IMREAD_COLOR);
     }
-    if (img.empty() || templ.empty() || (use_mask && mask.empty()))
-    {
+    if (img.empty() || templ.empty() || (use_mask && mask.empty())) {
         cout << "Can't read one of the images" << endl;
         return EXIT_FAILURE;
     }
@@ -49,28 +49,23 @@ void MatchingMethod(int, void*)
     int result_rows = img.rows - templ.rows + 1;
     result.create(result_rows, result_cols, CV_32FC1);
     bool method_accepts_mask = (TM_SQDIFF == match_method || match_method == TM_CCORR_NORMED);
-    if (use_mask && method_accepts_mask)
-    {
+    if (use_mask && method_accepts_mask) {
         matchTemplate(img, templ, result, match_method, mask);
-    }
-    else
-    {
+    } else {
         matchTemplate(img, templ, result, match_method);
     }
-    normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
+    Scalar testt = cv::sum(result);
+    //normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
     double minVal; double maxVal; Point minLoc; Point maxLoc;
     Point matchLoc;
     minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
-    if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED)
-    {
+    if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED) {
         matchLoc = minLoc;
-    }
-    else
-    {
+    } else {
         matchLoc = maxLoc;
     }
-    rectangle(img_display, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar::all(0), 2, 8, 0);
-    rectangle(result, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar::all(0), 2, 8, 0);
+    rectangle(img_display, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar(0, 125, 255), 2, 8, 0);
+    rectangle(result, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar(125,125,125,0), 2, 8, 0);
     imshow(image_window, img_display);
     imshow(result_window, result);
     return;
