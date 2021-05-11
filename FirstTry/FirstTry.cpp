@@ -36,7 +36,7 @@ int main(int argc, char** argv)
         std::cout << "Can't read one of the images" << std::endl;
         return EXIT_FAILURE;
     }
-    card_name = std::string(argv[2]).substr(0, std::string(argv[2]).size() - 4); // get card name from file and remove *.png
+    card_name = std::string(argv[2]).substr(10, std::string(argv[2]).size() - 14); // get card name from file and remove *.png
     cv::namedWindow(image_window, cv::WINDOW_AUTOSIZE);
     cv::namedWindow(result_window, cv::WINDOW_AUTOSIZE);
     const char* trackbar_label = "Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED";
@@ -69,6 +69,11 @@ void MatchingMethod(int, void*)
     } else {
         matchLoc = maxLoc;
     }
+    cv::Mat subImg = result(cv::Range(matchLoc.x, templ.cols), cv::Range(matchLoc.y, templ.rows));
+
+    cv::Scalar tets_sum = cv::sum(subImg);
+
+
     rectangle(img_display, matchLoc, cv::Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), cv::Scalar(0, 125, 255), 2, 8, 0);
     cv::putText(img_display, card_name, cv::Point(matchLoc.x, matchLoc.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 255, 0), 2, false);
     rectangle(result, matchLoc, cv::Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), cv::Scalar(125,125,125,0), 2, 8, 0);
