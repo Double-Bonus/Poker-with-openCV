@@ -1,8 +1,4 @@
-/**
- * Simple shape detector program.
- * It loads an image and tries to find simple shapes (rectangle, triangle, circle, etc) in it.
- * This program is a modified version of `squares.cpp` found in the OpenCV sample dir.
- */
+
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <cmath>
@@ -41,8 +37,9 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 
 int main()
 {
-	//cv::Mat src = cv::imread("polygon.png");
-	cv::Mat src = cv::imread("two_aces.png");
+	cv::Mat src = cv::imread("new_test_img.png");
+	
+
 	if (src.empty())
 		return -1;
 
@@ -53,6 +50,8 @@ int main()
 	// Use Canny instead of threshold to catch squares with gradient shading
 	cv::Mat bw;
 	cv::Canny(gray, bw, 0, 50, 5);
+
+	cv::imshow("Program output", bw);
 
 	// Find contours
 	std::vector<std::vector<cv::Point> > contours;
@@ -68,14 +67,10 @@ int main()
 		cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true) * 0.02, true);
 
 		// Skip small or non-convex objects 
-		if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
+		if (std::fabs(cv::contourArea(contours[i])) < 300 || !cv::isContourConvex(approx))
 			continue;
 
-		if (approx.size() == 3)
-		{
-			setLabel(dst, "TRI", contours[i]);    // Triangles
-		}
-		else if (approx.size() >= 4 && approx.size() <= 6)
+		if (approx.size() == 4)
 		{
 			// Number of vertices of polygonal curve
 			int vtc = approx.size();
@@ -96,21 +91,6 @@ int main()
 			// to determine the shape of the contour
 			if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
 				setLabel(dst, "RECT", contours[i]);
-			else if (vtc == 5 && mincos >= -0.34 && maxcos <= -0.27)
-				setLabel(dst, "PENTA", contours[i]);
-			else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
-				setLabel(dst, "HEXA", contours[i]);
-		}
-		else
-		{
-			// Detect and label circles
-			double area = cv::contourArea(contours[i]);
-			cv::Rect r = cv::boundingRect(contours[i]);
-			int radius = r.width / 2;
-
-			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 &&
-				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
-				setLabel(dst, "CIR", contours[i]);
 		}
 	}
 
